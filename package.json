@@ -1,0 +1,37 @@
+{
+  "name": "turbidity-app2",
+  "version": "1.0.0",
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "@react-native-firebase/app": "^17.3.1",
+    "@react-native-firebase/firestore": "^17.3.1",
+    "@react-native-firebase/storage": "^17.3.1",
+    "@react-navigation/native": "^6.1.6",
+    "@react-navigation/stack": "^6.3.16",
+    "expo": "~47.0.12",
+    "expo-camera": "~13.1.0",
+    "expo-image-manipulator": "~11.0.0",
+    "expo-image-picker": "~14.0.2",
+    "expo-status-bar": "~1.4.2",
+    "firebase": "^9.17.2",
+    "react": "18.1.0",
+    "react-native": "0.70.5",
+    "react-native-action-button": "^2.8.5",
+    "react-native-cli": "^2.0.1",
+    "react-native-firebase": "^5.6.0",
+    "react-native-image-crop-picker": "^0.39.0",
+    "react-native-image-picker": "^5.1.0",
+    "react-native-svg": "13.4.0",
+    "react-native-vector-icons": "^9.2.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.9"
+  },
+  "private": true
+}
