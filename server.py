@@ -3,7 +3,7 @@ import serial
 import time
 import requests
 from flask_cors import CORS
-
+import numpy as np
 ser = serial.Serial('COM4', 9600)
 app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
@@ -15,16 +15,18 @@ toSend={}
 
 @app.route('/data', methods=['GET'])
 def get_data():
-    #arr=[]
-    #while True:
-    ser.reset_input_buffer()
-    data = ser.readline().decode('ascii').strip()
-    print('Data received:', data)
-        #arr.append(data)
-        #if len(arr)>100:
-         #   break
+    arr=[]
+    while True:
+        ser.reset_input_buffer()
+        data = ser.readline().decode('ascii').strip()
+        print('Data received:', data)
+        arr.append(float(data))
+        if len(arr)>7  :
+            break
     # toSend={"value":arr}
-    toSend={"value":data}
+    # print(np.mean(arr))
+    toSend={"value":np.mean(arr)}
+    time.sleep(0.1) 
     #data = {"value":ser.readline().decode('ascii').strip()}
     #print('Data received:', data)
     #requests.post('http://localhost:5000/send_data', json={'data': data})
