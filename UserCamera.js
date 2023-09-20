@@ -8,6 +8,7 @@ import {
   Platform,
   TouchableOpacity,
   Dimensions,
+  Modal,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import React, { useState, useEffect } from "react";
@@ -17,11 +18,14 @@ import "firebase/compat/storage";
 import firebase from "firebase/compat/app";
 import { Camera } from "expo-camera";
 import * as ImageManipulator from "expo-image-manipulator";
+import Pressable from "react-native/Libraries/Components/Pressable/Pressable";
 
-export default function UserCamera({ navigation }) {
+export default function UserCamera({ route, navigation }) {
   const [hasPermission, setHasPermission] = useState(null);
   const [camera, setCamera] = useState(null);
   const [photo, setPhoto] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+
   useEffect(() => {
     (async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
@@ -85,6 +89,7 @@ export default function UserCamera({ navigation }) {
       console.log(
         "picture taken **************************************************************"
       );
+
       console.log("heree");
       const boxTop = Dimensions.get("screen").height * 0.1;
       const boxLeft = Dimensions.get("screen").width * 0.15;
@@ -103,60 +108,36 @@ export default function UserCamera({ navigation }) {
         [{ crop: cropRegion }],
         { compress: 0, format: ImageManipulator.SaveFormat.JPEG }
       );
-
-      fetch("http://192.168.1.16:5000/data")
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("Data received in fetch method :", data);
-          const today = new Date();
-          const year = today.getFullYear();
-          const month = String(today.getMonth() + 1).padStart(2, "0");
-          const day = String(today.getDate()).padStart(2, "0");
-          const hours = today.getHours();
-          const minutes = today.getMinutes();
-          const seconds = today.getSeconds();
-          const currentDate = `${year}-${month}-${day}_${hours}:${
-            minutes < 10 ? `0${minutes}` : minutes
-          }:${seconds < 10 ? `0${seconds}` : seconds}`;
-          return `${data.value}_${currentDate}`;
-        })
-        .then(async (data) => {
-          console.log("data received in the next then ", data);
-          const uploadUri = await fetch(processedImage.uri);
-          const blob = await uploadUri.blob();
-          const storageRef = await firebase.storage().ref(`Dataset3/${data}`); //Number(avg(dataArray)).toFixed(2).toString()
-          const task = await storageRef.put(blob);
-          console.log(
-            "****************************** uploaded Uri **********************************************"
-          );
-
-          // Create file metadata to update
-          // const metadata = {
-          //   customMetadata: {
-          //     location: "Yosemite, CA, USA",
-          //     activity: "Hiking",
-          //   },
-          // };
-
-          // // Update metadata properties
-          // const forestRef = firebase
-          //   .storage()
-          //   .ref("testImages/hahahap.image/jpeg");
-          // firebase
-          //   .storage()
-          //   .ref()
-          //   .updateMetadata(forestRef, metadata)
-          //   .then((metadata) => {
-          //     // Updated metadata for 'images/forest.jpg' is returned in the Promise
-          //   })
-          //   .catch((error) => {
-          //     // Uh-oh, an error occurred!
-          //   });
+      fetch(processedImage.uri)
+        .then((response) => response.blob())
+        .then((blob) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const base64Image = reader.result.split(",")[1]; // Extract the base64 data part
+            sendImageToServer(base64Image);
+          };
+          reader.readAsDataURL(blob);
         })
         .catch((error) => console.error(error));
-
-      setPhoto(resizedPhoto);
     }
+
+    const sendImageToServer = (base64Image) => {
+      // Send the base64-encoded image as a string to the server
+      fetch(`http://${route.params.adress}:5000/process_image`, {
+        method: "POST",
+        body: JSON.stringify({ image: base64Image }), // Send as JSON
+        headers: {
+          "Content-Type": "application/json", // Set the content type to JSON
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("Data received from Flask server:", data);
+          // Handle the response from the server as needed
+          setModalVisible(true);
+        })
+        .catch((error) => console.error(error));
+    };
   };
 
   if (hasPermission === null) {
@@ -180,6 +161,34 @@ export default function UserCamera({ navigation }) {
   // };
   return (
     <View style={styles.container}>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}
+      >
+        <Pressable
+          style={{
+            flex: 1,
+            justifyContent: "center",
+          }}
+          onPress={() => {
+            setModalVisible(false);
+          }}
+        >
+          <Text
+            style={{
+              textAlign: "center",
+              fontSize: 55,
+              color: "rgb(108, 93, 211)",
+            }}
+          >
+            High Turbidity
+          </Text>
+        </Pressable>
+      </Modal>
       <Camera
         style={styles.camera}
         type={Camera.Constants.Type.back}

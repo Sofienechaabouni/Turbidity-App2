@@ -1,77 +1,91 @@
 import { StatusBar } from "expo-status-bar";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
   View,
   Button,
-  Image,
-  Platform,
   TouchableOpacity,
+  TextInput,
+  KeyboardAvoidingView,
+  ScrollView,
+  Dimensions,
 } from "react-native";
-import React, { useState, useEffect } from "react";
+import Icon from "react-native-vector-icons/Feather";
 
 export default function AdminDashboard({ navigation }) {
   const [buyer, setBuyer] = useState(true);
+  const [text, onChangeText] = React.useState("");
+
   return (
-    <View style={styles.container}>
-      <View
-        style={{
-          flex: 0.1,
-          textAlign: "center",
-          textAlignVertical: "center",
-          fontSize: 25,
-        }}
-      ></View>
-      <Text
-        style={{
-          flex: 0.1,
-          textAlign: "center",
-          textAlignVertical: "center",
-          fontSize: 20,
-          color: "rgb(108, 93, 211)",
-        }}
+    <KeyboardAvoidingView
+      style={styles.container}
+      enabled
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView
+        contentContainerStyle={styles.buyerSellerDiv}
+        keyboardShouldPersistTaps="handled"
+        scrollEnabled
       >
-        choose the mode you want to use
-      </Text>
-      <View style={styles.buyerSellerDiv}>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("Inlab")}
-          style={[
-            styles.buyerSeller,
-            {
-              backgroundColor: "rgb(108, 93, 211)",
-              width: 250,
-            },
-          ]}
-        >
-          <Text style={styles.buyerTxt}>In Lab</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("Insitu")}
-          style={[
-            styles.buyerSeller,
-            {
-              backgroundColor: "rgb(108, 93, 211)",
-              width: 250,
-            },
-          ]}
-        >
-          <Text style={styles.buyerTxt}>In Situation </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("Camera")}
-          style={[
-            styles.buyerSeller,
-            {
-              backgroundColor: "rgb(108, 93, 211)",
-              width: 250,
-            },
-          ]}
-        >
-          <Text style={styles.buyerTxt}>Simple User</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+        <View style={styles.content}>
+          <View
+            style={{
+              height: "10%",
+              textAlign: "center",
+              textAlignVertical: "center",
+              fontSize: 25,
+            }}
+          ></View>
+          <Text style={styles.heading}>Choose the mode you want to use</Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Inlab")}
+            style={[
+              styles.buyerSeller,
+              { backgroundColor: "rgb(108, 93, 211)" },
+            ]}
+          >
+            <Text style={styles.buyerTxt}>In Lab</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("Insitu", {
+                adress: text,
+              })
+            }
+            style={[
+              styles.buyerSeller,
+              { backgroundColor: "rgb(108, 93, 211)" },
+            ]}
+          >
+            <Text style={styles.buyerTxt}>In Situation</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("Camera", {
+                adress: text,
+              })
+            }
+            style={[
+              styles.buyerSeller,
+              { backgroundColor: "rgb(108, 93, 211)" },
+            ]}
+          >
+            <Text style={styles.buyerTxt}>Simple User</Text>
+          </TouchableOpacity>
+          <View style={styles.serverLinkContainer}>
+            <Text style={styles.serverLinkLabel}>Server Link:</Text>
+            <TextInput
+              style={styles.serverLinkInput}
+              placeholder="Enter server link"
+              placeholderTextColor="#323232"
+              onChangeText={onChangeText}
+              value={text}
+            />
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -80,27 +94,52 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   buyerSellerDiv: {
+    flexGrow: 1,
+    height: Dimensions.get("screen").height,
+  },
+  content: {
     flex: 1,
-    justifyContent: "center",
     alignItems: "center",
-    flexDirection: "column",
+    paddingVertical: 20,
+  },
+  heading: {
+    fontSize: 20,
+    color: "rgb(108, 93, 211)",
+    marginBottom: 20,
   },
   buyerSeller: {
     borderRadius: 15,
     height: 125,
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "center",
-    margin: 25,
+    alignItems: "center",
+    marginVertical: 25,
+    backgroundColor: "rgb(108, 93, 211)",
+    width: 250,
   },
-  buyerTxt: { fontSize: 20, color: "white", marginLeft: 10 },
-  nextButton: {
+  buyerTxt: {
+    fontSize: 20,
+    color: "white",
+    textAlign: "center",
+    textAlignVertical: "center",
+    width: "100%",
+  },
+  serverLinkContainer: {
+    flexDirection: "row",
+    marginTop: 20,
+    alignItems: Platform.OS === "ios" ? "center" : "stretch",
+  },
+  serverLinkLabel: {
+    textAlignVertical: "center",
+  },
+  serverLinkInput: {
+    backgroundColor: "#f8f9fa",
+    color: "#323232",
+    padding: 10,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: "rgb(108, 93, 211)",
-    backgroundColor: "white",
-    borderRadius: 15,
+    borderColor: "#f8f9fa",
+    elevation: 10,
     height: 50,
-    alignItems: "center",
-    justifyContent: "center",
   },
 });

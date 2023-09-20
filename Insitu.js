@@ -18,7 +18,7 @@ import firebase from "firebase/compat/app";
 import { Camera } from "expo-camera";
 import * as ImageManipulator from "expo-image-manipulator";
 
-export default function Insitu({ navigation }) {
+export default function Insitu({ route, navigation }) {
   const [hasPermission, setHasPermission] = useState(null);
   const [camera, setCamera] = useState(null);
   const [photo, setPhoto] = useState(null);
@@ -104,7 +104,7 @@ export default function Insitu({ navigation }) {
         { compress: 0, format: ImageManipulator.SaveFormat.JPEG }
       );
 
-      fetch("http://192.168.1.16:5000/data")
+      fetch(`http://${route.params.adress}:5000/data`)
         .then((response) => response.json())
         .then((data) => {
           console.log("Data received in fetch method :", data);
@@ -124,7 +124,7 @@ export default function Insitu({ navigation }) {
           console.log("data received in the next then ", data);
           const uploadUri = await fetch(processedImage.uri);
           const blob = await uploadUri.blob();
-          const storageRef = await firebase.storage().ref(`Dataset3/${data}`); //Number(avg(dataArray)).toFixed(2).toString()
+          const storageRef = await firebase.storage().ref(`Dataset2/${data}`); //Number(avg(dataArray)).toFixed(2).toString()
           const task = await storageRef.put(blob);
           console.log(
             "****************************** uploaded Uri **********************************************"

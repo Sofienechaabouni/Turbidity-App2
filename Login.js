@@ -199,7 +199,12 @@ export default function Login({ navigation }) {
                 { backgroundColor: !singUpStatus ? "black" : "transparent" },
               ]}
             >
-              <Text style={{ color: !singUpStatus ? "white" : "black" }}>
+              <Text
+                style={{
+                  color: !singUpStatus ? "white" : "black",
+                  textAlign: "center",
+                }}
+              >
                 Login
               </Text>
             </TouchableOpacity>
@@ -212,7 +217,12 @@ export default function Login({ navigation }) {
                 { backgroundColor: singUpStatus ? "black" : "transparent" },
               ]}
             >
-              <Text style={{ color: singUpStatus ? "white" : "black" }}>
+              <Text
+                style={{
+                  color: singUpStatus ? "white" : "black",
+                  textAlign: "center",
+                }}
+              >
                 Sign up
               </Text>
             </TouchableOpacity>
@@ -371,18 +381,35 @@ export default function Login({ navigation }) {
                 }}
                 style={styles.continueButton}
               >
-                <Text>Login</Text>
+                <Text style={{ textAlign: "center" }}>Login</Text>
               </TouchableOpacity>
             </>
           )}
-          <Text style={{ color: "grey" }}>OR</Text>
-          <TouchableOpacity onPress={() => {}} style={styles.fbgoogle}>
+          <View style={{ justifyContent: "center", padding: 5, width: "90%" }}>
+            <Text
+              style={{
+                color: "grey",
+                textAlign: "center",
+                justifyContent: "center",
+                padding: 4,
+              }}
+            >
+              OR
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => {}}
+            style={[styles.fbgoogle, { width: "90%" }]}
+          >
             <FbLogo />
-            <Text style={styles.txtfbgo}>Sign in with Facebook</Text>
+            <Text>Sign in with Facebook </Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => {}} style={styles.fbgoogle}>
+          <TouchableOpacity
+            onPress={() => {}}
+            style={[styles.fbgoogle, { width: "90%" }]}
+          >
             <GoogleLogo />
-            <Text style={styles.txtfbgo}>Continue with Google</Text>
+            <Text>Continue with Google </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -394,6 +421,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
+    justifyContent: "center",
     backgroundColor: "white",
   },
   buttons: {
@@ -407,7 +435,6 @@ const styles = StyleSheet.create({
   },
   singleButton: {
     justifyContent: "center",
-    alignItems: "center",
     padding: 5,
     borderRadius: 10,
     width: "30%",
@@ -459,10 +486,8 @@ const styles = StyleSheet.create({
 
   alert: {
     backgroundColor: "#e2dff6",
-    width: "90%",
+    width: "91%",
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-start",
     borderRadius: 13,
     padding: 8,
     marginTop: 15,
@@ -483,7 +508,6 @@ const styles = StyleSheet.create({
     width: "90%",
     height: 40,
     borderRadius: 10,
-    alignItems: "center",
     justifyContent: "center",
     margin: 10,
   },

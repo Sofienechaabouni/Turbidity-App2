@@ -44,7 +44,7 @@ export default function AdminDashboard({ navigation }) {
             },
           ]}
         >
-          <Text style={styles.buyerTxt}>Siimple User</Text>
+          <Text style={styles.buyerTxt}>Simple User</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -65,11 +65,16 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     height: 125,
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "center",
     margin: 25,
   },
-  buyerTxt: { fontSize: 20, color: "white", marginLeft: 10 },
+  buyerTxt: {
+    fontSize: 20,
+    color: "white",
+    textAlign: "center",
+    textAlignVertical: "center",
+    width: "100%",
+  },
   nextButton: {
     borderWidth: 1,
     borderColor: "rgb(108, 93, 211)",
