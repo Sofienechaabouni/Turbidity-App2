@@ -7,9 +7,12 @@ from skimage.restoration import denoise_bilateral
 from sklearn.cluster import DBSCAN
 from skimage.feature import hog
 from skimage import data, exposure
+import joblib
+
 def process_df(df):
     # Assuming df contains only one image
     def calculate_histogram(img):
+    
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         hist_r = cv2.calcHist([img_rgb], [0], None, [8], [0, 256]).flatten()
         hist_g = cv2.calcHist([img_rgb], [1], None, [8], [0, 256]).flatten()
@@ -21,12 +24,9 @@ def process_df(df):
     # Convert this list into a DataFrame
     hist_df = pd.DataFrame(histograms, columns=[f'hist_{i}' for i in range(24)])
 
-    # Normalize the histogram values using MinMaxScaler
-    scaler = MinMaxScaler()
-    hist_df_normalized = pd.DataFrame(scaler.fit_transform(hist_df.values), columns=hist_df.columns)
 
     # Concatenate the original DataFrame with the new normalized histogram columns
-    df = pd.concat([df.reset_index(drop=True), hist_df_normalized], axis=1)
+    df = pd.concat([df.reset_index(drop=True), hist_df], axis=1)
     ####***************************
     def calculate_moments(img):
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -40,9 +40,7 @@ def process_df(df):
         return mean_r, std_r,mean_g, std_g,mean_b, std_b,mean_all_channels,std_all_channels
 
     df['mean_r'], df['std_r'], df['mean_g'], df['std_g'], df['mean_b'], df['std_b'], df['mean_all_channels'], df['std_all_channels'] = zip(*df['image'].apply(calculate_moments))
-    scaler = MinMaxScaler()
-    columns_to_normalize = ['mean_r', 'std_r', 'mean_g', 'std_g', 'mean_b', 'std_b', 'mean_all_channels', 'std_all_channels']
-    df[columns_to_normalize] = scaler.fit_transform(df[columns_to_normalize])
+ 
     #*************
     def extract_lbp_features(image):
         img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -68,7 +66,7 @@ def process_df(df):
 
     # Drop the original 'lbp_hist' column
     df = df.drop('lbp_hist', axis=1)
-    #********
+    # #********
     def extract_haralick(image):
         img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         denoised_image = cv2.bilateralFilter(img_rgb, 9, 75, 75)
@@ -94,11 +92,8 @@ def process_df(df):
     # Apply the extract_haralick function to each image in the DataFrame
     df['contrast'], df['energy'], df['homogeneity'], df['dissimilarity'], df['correlation'], df['asm']= zip(*df['image'].apply(extract_haralick))
 
-    # Normalize the extracted features using Min-Max scaling
-    scaler = MinMaxScaler()
-    features_to_normalize = ['contrast', 'energy', 'homogeneity', 'dissimilarity', 'correlation', 'asm']
-    df[features_to_normalize] = scaler.fit_transform(df[features_to_normalize])
-    #************
+    
+    # #************
     # Function to detect lines and calculate median coordinates per cluster
     def detect_lines(image):
         img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -160,12 +155,9 @@ def process_df(df):
 
     # Print the modified DataFrame
     df.drop('line_coordinates', axis=1, inplace=True)
-    scaler = MinMaxScaler()
-
-    # Normalize the 'num_clusters' column
-    df['num_clusters'] = scaler.fit_transform(df['num_clusters'].values.reshape(-1, 1))
+  
     
-    #*****************
+    # #*****************
     def detect_area(image):
         img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
@@ -192,11 +184,8 @@ def process_df(df):
             column_name = 'area' + str(j + 1)
             df.at[i, column_name] = area
 
-    # Normalize the areas using Min-Max scaling
-    scaler = MinMaxScaler()
-    area_columns = [f'area{i+1}' for i in range(10)]
-    df[area_columns] = scaler.fit_transform(df[area_columns])
-    #**************
+
+    # #**************
     def Hog_feat(image):
         # Convert the image to grayscale
         img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -225,23 +214,42 @@ def process_df(df):
             column_name = 'HOG' + str(j + 1)
             df.at[i, column_name] = feature
 
-    #Normalize the HOG columns
-    scaler = MinMaxScaler()
-    hog_columns = ['HOG' + str(i) for i in range(1, num_hog_features + 1)]
-    df[hog_columns] = scaler.fit_transform(df[hog_columns])
-    print(df.tail)
+
+    # print(df.tail)
     df = df.drop('name', axis=1)
     df=df.drop('image', axis=1)
+    # # List of columns to keep
+    columns_to_keep = ['hist_0', 'hist_2', 'hist_3', 'hist_4', 'hist_9', 'hist_10', 'hist_11',
+       'hist_12', 'hist_16', 'hist_17', 'hist_18', 'hist_19', 'hist_20',
+       'mean_r', 'std_r', 'std_g', 'std_b', 'std_all_channels', 'num_clusters',
+       'area1']
 
-    print("Features without NaN values ***********************************")
+    # Keep only the specified columns in the DataFrame
+    df = df.loc[:, columns_to_keep]
 
-    # Get the column names without NaN values
-    columns_without_nan = [col for col in df.columns if df[col].isnull().sum() == 0]
 
-    # Print the column names without NaN values
-    print("Features without NaN values:")
-    for column in columns_without_nan:
-        print(column)
+    # print("Features without NaN values ***********************************")
+
+    # # Get the column names without NaN values
+    # columns_without_nan = [col for col in df.columns if df[col].isnull().sum() == 0]
+
+    # # Print the column names without NaN values
+    # print("Features without NaN values:")
+    # for column in columns_without_nan:
+    #     print(column)
+    # Normalize the entire DataFrame using Min-Max scaling
+    # Assuming df contains only one row
+    columns_to_normalize = ['hist_0', 'hist_2', 'hist_3', 'hist_4', 'hist_9', 'hist_10', 'hist_11',
+       'hist_12', 'hist_16', 'hist_17', 'hist_18', 'hist_19', 'hist_20',
+       'mean_r', 'std_r', 'std_g', 'std_b', 'std_all_channels', 'num_clusters',
+       'area1']
+    #scaler = MinMaxScaler()
+    #df[columns_to_normalize] = scaler.fit_transform(df[columns_to_normalize])
+    #loaded_model = joblib.load(r'C:\Users\sofie\OneDrive\Bureau\turbidity-app-master\chi2_model.pkl', check_version=False)
+    #predictions = loaded_model.predict(df)
+    loaded_model = joblib.load('C:\\Users\\sofie\\OneDrive\\Bureau\\turbidity-app-master\\chi2_model.pkl')
+
+    #print(predictions)
     print(df.tail)
     print(df.shape)
 

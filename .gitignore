@@ -9,6 +9,8 @@ npm-debug.*
 *.mobileprovision
 *.orig.*
 web-build/
-
+chi
+chi2_model.pkl
+turbidity-app2-firebase-adminsdk-nk0hv-b68e5fe80f.json
 # macOS
 .DS_Store

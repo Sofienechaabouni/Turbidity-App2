@@ -3,9 +3,6 @@ import {
   StyleSheet,
   Text,
   View,
-  Button,
-  Image,
-  Platform,
   TouchableOpacity,
   TextInput,
   Dimensions,
@@ -91,18 +88,6 @@ export default function Inlab({ navigation }) {
     return <Text>No access to camera</Text>;
   }
 
-  // const [image, setImage] = useState(null);
-
-  // const pickImage = async () => {
-  //   // No permissions request is necessary for launching the image library
-  //   let result = await ImagePicker.launchCameraAsync({});
-
-  //   console.log(result);
-
-  //   if (!result.canceled) {
-  //     setImage(result.assets[0].uri);
-  //   }
-  // };
   return (
     <View style={styles.container}>
       <Camera

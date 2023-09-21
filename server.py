@@ -54,19 +54,29 @@ def post_data():
 @app.route('/process_image', methods=['POST'])
 def process_image():
     try:
-        image_bytes = request.get_data()  # Get the binary image data
-        
-        # Convert the image bytes to a NumPy array
-        image_array = np.frombuffer(image_bytes, dtype=np.uint8)
-        
-        # Use image_array for processing as needed
+        # Retrieve the JSON data from the request
+        json_data = request.get_json()
+
+        # Get the image data from the 'image' property in the JSON
+        base64_image = json_data['image']
+
+        # Decode the base64-encoded image to bytes
+        image_bytes = base64.b64decode(base64_image)
+
+        # Use PIL to open the image from binary data
+        image = Image.open(io.BytesIO(image_bytes))
+        image_array = np.array(image)
         denoised_image = cv2.bilateralFilter(image_array, 9, 75, 75)
+        
+        # # Convert the PIL image to a NumPy array
+        # image_array = np.array(image)
+        # denoised_image = cv2.bilateralFilter(image_array, 9, 75, 75)
         default_name = "test_name"
-        print(type(denoised_image))
-        # Create a DataFrame with the processed image and name
+        # print(type(denoised_image))
+        # # Create a DataFrame with the processed image and name
         df = pd.DataFrame({ "image": [denoised_image],"name": default_name})
         processed_df = process_df(df)
-        return jsonify({'message': 'image received and processed successfully'})
+        return jsonify({'message': processed_df})
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500

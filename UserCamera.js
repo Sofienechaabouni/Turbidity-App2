@@ -3,17 +3,11 @@ import {
   StyleSheet,
   Text,
   View,
-  Button,
-  Image,
-  Platform,
   TouchableOpacity,
   Dimensions,
   Modal,
 } from "react-native";
-import * as ImagePicker from "expo-image-picker";
 import React, { useState, useEffect } from "react";
-import { authentication, db } from "./database/firebase";
-import { arrayUnion, doc, setDoc } from "firebase/firestore";
 import "firebase/compat/storage";
 import firebase from "firebase/compat/app";
 import { Camera } from "expo-camera";
@@ -147,18 +141,6 @@ export default function UserCamera({ route, navigation }) {
     return <Text>No access to camera</Text>;
   }
 
-  // const [image, setImage] = useState(null);
-
-  // const pickImage = async () => {
-  //   // No permissions request is necessary for launching the image library
-  //   let result = await ImagePicker.launchCameraAsync({});
-
-  //   console.log(result);
-
-  //   if (!result.canceled) {
-  //     setImage(result.assets[0].uri);
-  //   }
-  // };
   return (
     <View style={styles.container}>
       <Modal

@@ -1,14 +1,6 @@
 import { StatusBar } from "expo-status-bar";
-import {
-  StyleSheet,
-  Text,
-  View,
-  Button,
-  Image,
-  Platform,
-  TouchableOpacity,
-} from "react-native";
-import React, { useState, useEffect } from "react";
+import { StyleSheet } from "react-native";
+import React from "react";
 import UserCamera from "./UserCamera";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
@@ -27,8 +19,6 @@ const defaultScreenOptions = {
   },
 };
 export default function App() {
-  const [value, setValue] = useState(null);
-
   return (
     <>
       <StatusBar hidden={true} />
