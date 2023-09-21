@@ -161,13 +161,12 @@ const styles = StyleSheet.create({
   },
   box: {
     position: "absolute",
-    top: "40%",
-    left: "50%",
-    width: 300,
+    top: "10%",
+    left: "15%",
+    width: 250,
     height: 250,
     borderWidth: 6,
     borderColor: "white",
-    transform: [{ translateX: -150 }, { translateY: -100 }],
   },
   input: {
     width: 100,

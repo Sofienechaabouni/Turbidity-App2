@@ -18,7 +18,7 @@ export default function UserCamera({ route, navigation }) {
   const [hasPermission, setHasPermission] = useState(null);
   const [camera, setCamera] = useState(null);
   const [photo, setPhoto] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -164,7 +164,7 @@ export default function UserCamera({ route, navigation }) {
             style={{
               textAlign: "center",
               fontSize: 55,
-              color: "rgb(108, 93, 211)",
+              color: "blue",
             }}
           >
             High Turbidity
