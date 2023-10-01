@@ -76,7 +76,7 @@ def process_image():
         # # Create a DataFrame with the processed image and name
         df = pd.DataFrame({ "image": [denoised_image],"name": default_name})
         processed_df = process_df(df)
-        return jsonify({'message': processed_df})
+        return jsonify({'message': processed_df[0]})
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500

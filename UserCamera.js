@@ -5,6 +5,7 @@ import {
   View,
   TouchableOpacity,
   Dimensions,
+  Button,
   Modal,
 } from "react-native";
 import React, { useState, useEffect } from "react";
@@ -18,7 +19,8 @@ export default function UserCamera({ route, navigation }) {
   const [hasPermission, setHasPermission] = useState(null);
   const [camera, setCamera] = useState(null);
   const [photo, setPhoto] = useState(null);
-  const [modalVisible, setModalVisible] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [class_value, setClass] = useState(0);
 
   useEffect(() => {
     (async () => {
@@ -128,6 +130,7 @@ export default function UserCamera({ route, navigation }) {
         .then((data) => {
           console.log("Data received from Flask server:", data);
           // Handle the response from the server as needed
+          setClass(data["message"]);
           setModalVisible(true);
         })
         .catch((error) => console.error(error));
@@ -155,20 +158,70 @@ export default function UserCamera({ route, navigation }) {
           style={{
             flex: 1,
             justifyContent: "center",
-          }}
-          onPress={() => {
-            setModalVisible(false);
+            backgroundColor: "rgba(255,255,255,0)",
+            alignItems: "center",
           }}
         >
-          <Text
+          <View
             style={{
-              textAlign: "center",
-              fontSize: 55,
-              color: "blue",
+              backgroundColor: "white",
+              width: "70%",
+              justifyContent: "center",
+              padding: 20,
+              elevation: 20,
+              borderRadius: 15,
+              alignItems: "center",
             }}
           >
-            High Turbidity
-          </Text>
+            {class_value == 0 && (
+              <Text
+                style={{
+                  fontSize: 25,
+                  color: "blue",
+                  textAlign: "center",
+                  width: "100%",
+                  margin: 10,
+                }}
+              >
+                Class: Low Turbidity
+              </Text>
+            )}
+            {class_value == 1 && (
+              <Text
+                style={{
+                  fontSize: 25,
+                  color: "blue",
+                  textAlign: "center",
+                  width: "100%",
+                  margin: 10,
+                }}
+              >
+                Class: Medium Turbidity
+              </Text>
+            )}
+            {class_value == 2 && (
+              <Text
+                style={{
+                  fontSize: 25,
+                  color: "blue",
+                  textAlign: "center",
+                  width: "100%",
+                  margin: 10,
+                }}
+              >
+                Class: High Turbidity
+              </Text>
+            )}
+            <Pressable
+              style={{ width: "30%", backgroundColor: "#2478FD" }}
+              onPress={() => {
+                setModalVisible(false);
+                console.log(class_value);
+              }}
+            >
+              <Text style={{ textAlign: "center", color: "white" }}>close</Text>
+            </Pressable>
+          </View>
         </Pressable>
       </Modal>
       <Camera

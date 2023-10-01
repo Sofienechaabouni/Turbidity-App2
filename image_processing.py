@@ -27,6 +27,16 @@ def process_df(df):
 
     # Concatenate the original DataFrame with the new normalized histogram columns
     df = pd.concat([df.reset_index(drop=True), hist_df], axis=1)
+    calculate_histogram_min = [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]
+
+    calculate_histogram_max = [1041709., 1260666., 1139285., 1159369.,  877944.,  412144.,  203331.,  165196.,
+                                    509755., 1244641., 1249606.,  853312., 1032411.,  938229.,  372184.,  165196.,
+                                    510166., 1171514., 1205287., 1311934., 1136629.,  998768.,  787595.,  165196.]
+    for i in range(24):
+        column_name = f'hist_{i}'
+        min_val = calculate_histogram_min[i]
+        max_val = calculate_histogram_max[i]
+        df[column_name] = (df[column_name] - min_val) / (max_val - min_val)
     ####***************************
     def calculate_moments(img):
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -40,7 +50,15 @@ def process_df(df):
         return mean_r, std_r,mean_g, std_g,mean_b, std_b,mean_all_channels,std_all_channels
 
     df['mean_r'], df['std_r'], df['mean_g'], df['std_g'], df['mean_b'], df['std_b'], df['mean_all_channels'], df['std_all_channels'] = zip(*df['image'].apply(calculate_moments))
- 
+    calculate_moments_min = np.array([20.66298147,  8.39112391, 37.6917422,  7.25353614, 52.74700001, 6.508103, 37.65864648,  7.42473685])
+    calculate_moments_max = np.array([148.74767124,  77.02240321, 178.00388375,  77.02240321, 194.54759282, 77.02240321, 169.55013435,  77.02240321])
+
+    # Normalize each column using the provided min and max values
+    columns_to_normalize = ['mean_r', 'std_r', 'mean_g', 'std_g', 'mean_b', 'std_b', 'mean_all_channels', 'std_all_channels']
+    for i, column_name in enumerate(columns_to_normalize):
+        min_val = calculate_moments_min[i]
+        max_val = calculate_moments_max[i]
+        df[column_name] = (df[column_name] - min_val) / (max_val - min_val)
     #*************
     def extract_lbp_features(image):
         img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -91,11 +109,21 @@ def process_df(df):
 
     # Apply the extract_haralick function to each image in the DataFrame
     df['contrast'], df['energy'], df['homogeneity'], df['dissimilarity'], df['correlation'], df['asm']= zip(*df['image'].apply(extract_haralick))
+    # Define the extract_haralick_min and extract_haralick_max arrays
+    extract_haralick_min = np.array([7.10196378e-02, 2.03522117e-02, 3.52084212e-01, 7.08353930e-02, 9.87573169e-01, 4.14212522e-04])
+    extract_haralick_max = np.array([48.78448524,  0.22932206,  0.96460073,  3.61033344,  0.99996976,  0.05258861])
+
+    # Normalize each column using the provided min and max values
+    columns_to_normalize = ['contrast', 'energy', 'homogeneity', 'dissimilarity', 'correlation', 'asm']
+    for i, column_name in enumerate(columns_to_normalize):
+        min_val = extract_haralick_min[i]
+        max_val = extract_haralick_max[i]
+        df[column_name] = (df[column_name] - min_val) / (max_val - min_val)
 
     
     # #************
-    # Function to detect lines and calculate median coordinates per cluster
-    def detect_lines(image):
+    # Function to detect lines and calculate the number of clusters
+    def detect_num_clusters(image):
         img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         gray = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
@@ -121,41 +149,13 @@ def process_df(df):
             dbscan = DBSCAN(eps=20, min_samples=2)
             labels = dbscan.fit_predict(cartesian_lines)
             num_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+            return num_clusters
 
-            if num_clusters > 0:
-                cluster_coordinates = []
-                for cluster_id in range(num_clusters):
-                    cluster_indices = np.where(labels == cluster_id)[0]  # Indices of points in current cluster
-                    cluster_lines = np.array(cartesian_lines)[cluster_indices]
-                    median_x = np.median(cluster_lines[:, [0, 2]])
-                    median_y = np.median(cluster_lines[:, [1, 3]])
-                    cluster_coordinates.append([median_x, median_y])
-                return num_clusters, cluster_coordinates
+        return 0
 
-        return 0, []
+    # Loop over each row in the DataFrame and detect the number of clusters
+    df['num_clusters'] = df['image'].apply(lambda x: detect_num_clusters(x))
 
-    # Loop over each row in the DataFrame and detect lines
-    df['num_clusters'], df['line_coordinates'] = zip(*df['image'].apply(lambda x: detect_lines(x)))
-    max_clusters = df['num_clusters'].max()  # Step 1: Get the maximum number of clusters
-    x_columns = [f'X_cluster{i+1}' for i in range(max_clusters)]  # Step 2: Generate column names for X coordinates
-    y_columns = [f'Y_cluster{i+1}' for i in range(max_clusters)]  # Step 2: Generate column names for Y coordinates
-
-    # Create empty columns for X and Y coordinates
-    df[x_columns] = pd.DataFrame([[np.nan] * max_clusters] * len(df), columns=x_columns)
-    df[y_columns] = pd.DataFrame([[np.nan] * max_clusters] * len(df), columns=y_columns)
-
-    # Loop over each row and assign cluster coordinates to respective columns
-    for index, row in df.iterrows():
-        num_clusters = row['num_clusters']
-        if num_clusters > 0:
-            cluster_coordinates = row['line_coordinates']
-            for i in range(num_clusters):
-                df.at[index, x_columns[i]] = cluster_coordinates[i][0]  # Assign X coordinate to respective column
-                df.at[index, y_columns[i]] = cluster_coordinates[i][1]  # Assign Y coordinate to respective column
-
-    # Print the modified DataFrame
-    df.drop('line_coordinates', axis=1, inplace=True)
-  
     
     # #*****************
     def detect_area(image):
@@ -183,6 +183,16 @@ def process_df(df):
         for j, area in enumerate(areas):
             column_name = 'area' + str(j + 1)
             df.at[i, column_name] = area
+    # Define the detect_area_min and detect_area_max arrays
+    detect_area_min = np.array([121105., 0., 0., 0., 0., 0., 0., 0., 0., 0.])
+    detect_area_max = np.array([1084935.5, 309034., 230062.5, 168249., 97672., 66423.5, 37134., 19505.5, 10035., 6773.])
+
+    # Normalize each 'area' column using the provided min and max values
+    for i in range(1, 11):
+        column_name = 'area' + str(i)
+        min_val = detect_area_min[i - 1]
+        max_val = detect_area_max[i - 1]
+        df[column_name] = (df[column_name] - min_val) / (max_val - min_val)
 
 
     # #**************
@@ -214,6 +224,18 @@ def process_df(df):
             column_name = 'HOG' + str(j + 1)
             df.at[i, column_name] = feature
 
+    # Define the Hog_feat_min and Hog_feat_max arrays
+    Hog_feat_min = np.array([0., 0., 0., 0.])
+    Hog_feat_max = np.array([1., 0.57735027, 0.70710678, 0.68647775])
+
+    # Loop over each 'HOG' column and normalize using the provided min and max values
+    num_hog_features = 4  # Number of HOG features
+
+    for i in range(1, num_hog_features + 1):
+        column_name = 'HOG' + str(i)
+        min_val = Hog_feat_min[i - 1]
+        max_val = Hog_feat_max[i - 1]
+        df[column_name] = (df[column_name] - min_val) / (max_val - min_val)
 
     # print(df.tail)
     df = df.drop('name', axis=1)
@@ -227,7 +249,7 @@ def process_df(df):
     # Keep only the specified columns in the DataFrame
     df = df.loc[:, columns_to_keep]
 
-
+    print(df.columns)
     # print("Features without NaN values ***********************************")
 
     # # Get the column names without NaN values
@@ -239,19 +261,24 @@ def process_df(df):
     #     print(column)
     # Normalize the entire DataFrame using Min-Max scaling
     # Assuming df contains only one row
-    columns_to_normalize = ['hist_0', 'hist_2', 'hist_3', 'hist_4', 'hist_9', 'hist_10', 'hist_11',
-       'hist_12', 'hist_16', 'hist_17', 'hist_18', 'hist_19', 'hist_20',
-       'mean_r', 'std_r', 'std_g', 'std_b', 'std_all_channels', 'num_clusters',
-       'area1']
+    # columns_to_normalize = ['hist_0', 'hist_2', 'hist_3', 'hist_4', 'hist_9', 'hist_10', 'hist_11',
+    #    'hist_12', 'hist_16', 'hist_17', 'hist_18', 'hist_19', 'hist_20',
+    #    'mean_r', 'std_r', 'std_g', 'std_b', 'std_all_channels', 'num_clusters',
+    #    'area1']
     #scaler = MinMaxScaler()
     #df[columns_to_normalize] = scaler.fit_transform(df[columns_to_normalize])
     #loaded_model = joblib.load(r'C:\Users\sofie\OneDrive\Bureau\turbidity-app-master\chi2_model.pkl', check_version=False)
     #predictions = loaded_model.predict(df)
     loaded_model = joblib.load('C:\\Users\\sofie\\OneDrive\\Bureau\\turbidity-app-master\\chi2_model.pkl')
-
+    predictions = loaded_model.predict(df)
+    print("prediction is")
+    print(predictions)
+    print(type(predictions))
     #print(predictions)
+    print(df.head)
     print(df.tail)
     print(df.shape)
+    return predictions
 
     
     
